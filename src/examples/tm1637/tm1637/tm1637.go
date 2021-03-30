@@ -28,22 +28,89 @@ func (d *device) Init() {
 	d.ClearDisplay()
 }
 
+const (
+	AddrAuto  uint8 = 0x40
+	AddrFixed uint8 = 0x44
+)
+
 func (d *device) Set(data, addr, brightness uint8) {
 	d.Data = data
 	d.Addr = addr
 	d.brightness = 0x88 + brightness
 }
-func (d *device) Display() {}
 
-func (d *device) DisplayWithBitAddr() {}
+func (d *device) Display(data []uint8) {
+	segData := make([]uint8, 4)
+	copy(data, segData)
+
+	d.coding(segData)
+	d.start()
+	d.writeByte(AddrAuto)
+	d.stop()
+	d.start()
+	d.writeByte(d.Addr)
+	for _, dt := range segData {
+		d.writeByte(dt)
+	}
+	d.stop()
+	d.start()
+	d.writeByte(d.dispCtrl)
+	d.stop()
+}
+
+func (d *device) DisplayWithBitAddr(addr, data uint8) {
+	segData := d._coding(&data)
+	d.start()
+	d.writeByte(AddrFixed)
+	d.stop()
+	d.start()
+	d.writeByte(addr | 0xC0)
+	d.writeByte(segData)
+	d.stop()
+	d.start()
+	d.writeByte(d.dispCtrl)
+	d.stop()
+}
 
 func (d *device) Point(point bool) {
 	d.point = point
 }
 
-func (d *device) ClearDisplay() {}
+func (d *device) ClearDisplay() {
+	d.DisplayWithBitAddr(0x00, 0x7F)
+	d.DisplayWithBitAddr(0x01, 0x7F)
+	d.DisplayWithBitAddr(0x02, 0x7F)
+	d.DisplayWithBitAddr(0x03, 0x7F)
+}
 
-func (d *device) writeByte() {}
+func (d *device) writeByte(data uint8) uint8 {
+	for i := 0; i < 8; i++ {
+		d.Clk.Low()
+		if (data & 0x01) == 0x01 {
+			d.Dio.High()
+		} else {
+			d.Dio.Low()
+		}
+		data >>= 1
+		d.Clk.High()
+	}
+	d.Clk.Low()
+	d.Dio.High()
+	d.Clk.High()
+	d.Dio.Configure(machine.PinConfig{Mode: machine.PinInput})
+
+	bitDelay()
+	ack := d.Dio.Get()
+	if ack == 0 {
+		d.Dio.Configure(machine.PinConfig{Mode: machine.PinOutput})
+		d.Dio.Low()
+	}
+	bitDelay()
+	d.Dio.Configure(machine.PinConfig{Mode: machine.PinOutput})
+	bitDelay()
+
+	return ack
+}
 
 func (d *device) start() {
 	d.Clk.High()
