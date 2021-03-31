@@ -1,4 +1,4 @@
-package tm1763
+package tm1637
 
 import (
 	"machine"
@@ -15,7 +15,7 @@ type device struct {
 	brightness uint8
 }
 
-func New(clk, dio uint8) *device {
+func New(clk, dio machine.Pin) *device {
 	return &device{Clk: clk, Dio: dio}
 }
 
@@ -83,7 +83,7 @@ func (d *device) ClearDisplay() {
 	d.DisplayWithBitAddr(0x03, 0x7F)
 }
 
-func (d *device) writeByte(data uint8) uint8 {
+func (d *device) writeByte(data uint8) bool {
 	for i := 0; i < 8; i++ {
 		d.Clk.Low()
 		if (data & 0x01) == 0x01 {
@@ -101,7 +101,7 @@ func (d *device) writeByte(data uint8) uint8 {
 
 	bitDelay()
 	ack := d.Dio.Get()
-	if ack == 0 {
+	if ack == false {
 		d.Dio.Configure(machine.PinConfig{Mode: machine.PinOutput})
 		d.Dio.Low()
 	}
