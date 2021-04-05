@@ -6,13 +6,12 @@ import (
 )
 
 type device struct {
-	Clk        machine.Pin
-	Dio        machine.Pin
-	Data       uint8
-	Addr       uint8
-	dispCtrl   uint8
-	point      bool
-	brightness uint8
+	Clk      machine.Pin
+	Dio      machine.Pin
+	Data     uint8
+	Addr     uint8
+	dispCtrl uint8
+	point    bool
 }
 
 func New(clk, dio machine.Pin) *device {
@@ -36,7 +35,7 @@ const (
 func (d *device) Set(data, addr, brightness uint8) {
 	d.Data = data
 	d.Addr = addr
-	d.brightness = 0x88 + brightness
+	d.dispCtrl = 0x88 + brightness
 }
 
 func (d *device) Display(data []uint8) {
@@ -81,6 +80,10 @@ func (d *device) ClearDisplay() {
 	d.DisplayWithBitAddr(0x01, 0x7F)
 	d.DisplayWithBitAddr(0x02, 0x7F)
 	d.DisplayWithBitAddr(0x03, 0x7F)
+}
+
+func (d *device) ClearDisplayWithBitAddr(addr uint8) {
+	d.DisplayWithBitAddr(addr, 0x7F)
 }
 
 func (d *device) writeByte(data uint8) bool {
