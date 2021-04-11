@@ -33,6 +33,7 @@ func main() {
 	//Initial digital out port
 	relaySwitchOut := machine.D6
 	relaySwitchOut.Configure(machine.PinConfig{Mode: machine.PinOutput})
+	relaySwitchOut.High()
 
 	device.Point(true)
 	// 10ms
@@ -159,23 +160,27 @@ func main() {
 		// energize
 		if !swRed.Get() {
 			// param 0 is max number of parameter
-			t := uint16(segParam.energizationTime*10 + 15) //15ms is adjustment
+			t := uint16(uint16(segParam.energizationTime) * 10)
 			n := segParam.numOfEnergization
 			if t == 0 {
 				t = 1000
 			}
+			if n == 0 {
+				n = 10
+			}
+			println(segParam.energizationTime)
+			println(t)
 			for i := uint8(0); i < n; i++ {
-				time.Sleep(time.Millisecond * time.Duration(t))
-				relaySwitchOut.High()
-				time.Sleep(time.Millisecond * time.Duration(t))
+				device.DisplayWithBitAddr(0, segParam.energizationTime/10)
+				device.DisplayWithBitAddr(1, segParam.energizationTime%10)
+				device.DisplayWithBitAddr(2, segParam.numOfEnergization/10)
+				device.DisplayWithBitAddr(3, segParam.numOfEnergization%10)
 				relaySwitchOut.Low()
+				time.Sleep(time.Millisecond * time.Duration(t+15)) //15ms is adjustment
+				device.ClearDisplay()
+				relaySwitchOut.High()
+				time.Sleep(time.Millisecond * time.Duration(t+15)) //15ms is adjustment
 			}
 		}
-
-		// println(swGrn.Get())
-		// println(swBlu.Get())
-		// println(swBlk.Get())
-		// println(swWht.Get())
-		// println(swRed.Get())
 	}
 }
