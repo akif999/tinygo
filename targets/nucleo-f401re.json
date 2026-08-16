@@ -7,6 +7,7 @@
         "src/device/stm32/stm32f401.s"
     ],
     "flash-method": "openocd",
-    "openocd-interface": "stlink-v2-1",
-    "openocd-target": "stm32f4x"
+    "openocd-interface": "stlink",
+    "openocd-target": "stm32f4x",
+    "openocd-commands": ["reset_config srst_only connect_assert_srst"]
 }
