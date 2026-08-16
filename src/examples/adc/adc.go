@@ -8,7 +8,6 @@ import (
 func main() {
 	machine.InitADC()
 
-	sensor := machine.ADC{machine.ADC2}
 	sensor.Configure(machine.ADCConfig{})
 
 	for {

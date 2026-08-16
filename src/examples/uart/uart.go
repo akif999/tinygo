@@ -7,12 +7,6 @@ import (
 	"time"
 )
 
-var (
-	uart = machine.UART1
-	tx   = machine.UART1_TX_PIN
-	rx   = machine.UART1_RX_PIN
-)
-
 func main() {
 	uart.Configure(machine.UARTConfig{TX: tx, RX: rx})
 	for {
