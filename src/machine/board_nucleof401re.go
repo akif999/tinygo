@@ -53,8 +53,15 @@ const BUTTON = PC13
 const (
 	// UART pins
 	// PA2 and PA3 are connected to the ST-Link Virtual Com Port (VCP).
-	UART_TX_PIN = PA2
-	UART_RX_PIN = PA3
+	UART_TX_PIN  = PA2
+	UART_RX_PIN  = PA3
+	UART1_TX_PIN = UART_TX_PIN
+	UART1_RX_PIN = UART_RX_PIN
+
+	// USART1 on Arduino D8 (PA9 = TX) / D2 (PA10 = RX).
+	// Use for external UART communication (e.g. with another board).
+	UART2_TX_PIN = PA9
+	UART2_RX_PIN = PA10
 
 	// I2C pins
 	// PB8 / Arduino D15 is SCL, PB9 / Arduino D14 is SDA.
@@ -82,6 +89,15 @@ var (
 	}
 	DefaultUART = UART1
 
+	// USART1 on PA9 (TX=D8) / PA10 (RX=D2). Use for external communication.
+	UART2  = &_UART2
+	_UART2 = UART{
+		Buffer:            NewRingBuffer(),
+		Bus:               stm32.USART1,
+		TxAltFuncSelector: AF7_USART1_2_3,
+		RxAltFuncSelector: AF7_USART1_2_3,
+	}
+
 	// I2C1 is documented; I2C0 is an alias.
 	I2C1 = &I2C{
 		Bus:             stm32.I2C1,
@@ -99,4 +115,5 @@ var (
 
 func init() {
 	UART1.Interrupt = interrupt.New(stm32.IRQ_USART2, _UART1.handleInterrupt)
+	UART2.Interrupt = interrupt.New(stm32.IRQ_USART1, _UART2.handleInterrupt)
 }
